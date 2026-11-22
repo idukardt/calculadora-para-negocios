@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="es-AR" data-estudio="Cr. Ignacio Dukardt">
+<!--
+  ============================================================
+  Calculadora para negocios
+  Archivo único: HTML + CSS + JavaScript en línea.
+  Sin build, sin frameworks, sin dependencias externas.
+  Todo el cálculo ocurre en el navegador: no se guarda ni se
+  envía ningún dato.
+
+  PERSONALIZACIÓN: el nombre del estudio se define una sola vez
+  en el atributo data-estudio de la etiqueta <html> (arriba).
+  ============================================================
+-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Calculadora de costos, precios, margen y markup para comercios y emprendimientos productivos.">
+<title>Calculadora para negocios</title>
+<style>
+  :root {
+    --primario: #00365e;
+    --acento: #7aa6ff;
+    --tarjeta: #ffffff;
+    --texto: #000000;
+    --borde: #bebebe;
+    /* Derivados para legibilidad (contraste AA sobre blanco) */
+    --texto-sec: #555555;
+    --fondo: #f2f4f7;
+    --acento-suave: #edf3ff;
+    --error: #9b1c1c;
+    --aviso-fondo: #fff8e6;
+    --aviso-borde: #c99a2e;
+    --radio: 8px;
+    --radio-g: 16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--texto);
+    background: var(--fondo);
+  }
+
+  .sr-only {
+    position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+
+  .skip-link {
+    position: absolute; left: 8px; top: -60px; z-index: 10;
+    background: var(--primario); color: #fff; padding: 8px 12px; border-radius: var(--radio);
+  }
+  .skip-link:focus { top: 8px; }
+
+  :focus-visible {
+    outline: 3px solid var(--primario);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--acento);
+  }
+
+  .contenedor { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+  /* ---------- Encabezado ---------- */
+  .encabezado { padding: 20px 0 0; }
+  .encabezado .caja {
+    background: var(--primario); color: #fff;
+    border-radius: var(--radio-g);
+    padding: 22px 24px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .encabezado h1 { margin: 0; font-size: 1.55rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .encabezado .bajada { margin: 4px 0 0; font-size: 1.05rem; color: #dbe7ff; }
+  .encabezado .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+  .encabezado .estudio { display: block; margin-top: 12px; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--acento); }
+  .btn-pildora {
+    font: inherit; font-size: 0.85rem; min-height: 34px; padding: 4px 14px;
+    border-radius: 999px; border: 1px solid rgba(255,255,255,0.55); background: transparent; color: #fff; cursor: pointer;
+  }
+  .btn-pildora:hover { background: rgba(255,255,255,0.12); }
+  @media (max-width: 559px) {
+    .encabezado .lado { flex-direction: row; }
+  }
+
+  main.contenedor { padding-top: 20px; padding-bottom: 32px; }
+
+  /* ---------- Tarjetas ---------- */
+  .tarjeta {
+    background: var(--tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-g);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .tarjeta > h2, .tarjeta > .cabecera h2 { margin: 0; font-size: 1.15rem; color: var(--primario); }
+  .cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  h3 { color: var(--primario); font-size: 1.02rem; margin: 18px 0 8px; }
+  h3:first-child { margin-top: 0; }
+  .seccion { border-top: 1px solid var(--borde); padding-top: 14px; margin-top: 16px; }
+  .seccion:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+
+  /* ---------- Campos ---------- */
+  .grilla { display: grid; grid-template-columns: 1fr; gap: 12px 16px; }
+  @media (min-width: 640px) { .grilla.dos { grid-template-columns: 1fr 1fr; } .grilla.tres { grid-template-columns: 1fr 1fr 1fr; } }
+
+  .campo { display: flex; flex-direction: column; min-width: 0; }
+  .campo > label, .campo > .rotulo { font-weight: bold; font-size: 0.92rem; margin-bottom: 4px; }
+  .ayuda { font-size: 0.82rem; color: var(--texto-sec); margin: 3px 0 0; }
+
+  input[type="text"], select {
+    font: inherit;
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background: #fff;
+    color: var(--texto);
+  }
+  input[type="text"]:hover, select:hover { border-color: #8f8f8f; }
+  input[aria-invalid="true"] { border-color: var(--error); border-width: 2px; }
+
+  .afijo { display: flex; align-items: stretch; }
+  .afijo > span {
+    display: flex; align-items: center; padding: 0 10px;
+    border: 1px solid var(--borde); background: #f7f7f7; color: var(--texto-sec);
+    font-size: 0.95rem;
+  }
+  .afijo.pre > span { border-right: 0; border-radius: var(--radio) 0 0 var(--radio); }
+  .afijo.pre > input { border-radius: 0 var(--radio) var(--radio) 0; }
+  .afijo.suf > span { border-left: 0; border-radius: 0 var(--radio) var(--radio) 0; }
+  .afijo.suf > input { border-radius: var(--radio) 0 0 var(--radio); }
+  input.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .error { color: var(--error); font-size: 0.82rem; margin: 3px 0 0; min-height: 0; }
+  .error:empty { display: none; }
+
+  /* ---------- Botones ---------- */
+  .btn {
+    font: inherit; font-size: 0.95rem;
+    min-height: 42px; padding: 8px 16px;
+    border-radius: var(--radio);
+    border: 1px solid var(--primario);
+    background: #fff; color: var(--primario);
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--acento-suave); }
+  .btn.principal { background: var(--primario); color: #fff; }
+  .btn.principal:hover { background: #024a7f; }
+  .btn:disabled, .btn.principal:disabled { background: #e9e9e9; color: #6b6b6b; border-color: var(--borde); cursor: not-allowed; }
+  .btn.chico { min-height: 36px; padding: 5px 12px; font-size: 0.88rem; }
+  .btn-eliminar {
+    font: inherit; min-width: 42px; min-height: 42px;
+    border: 1px solid var(--borde); border-radius: var(--radio);
+    background: #fff; color: var(--texto-sec); cursor: pointer; font-size: 1.2rem; line-height: 1;
+  }
+  .btn-eliminar:hover { color: var(--error); border-color: var(--error); }
+  .acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  /* ---------- Avisos ---------- */
+  .aviso {
+    border: 1px solid var(--borde);
+    border-left: 4px solid var(--primario);
+    background: var(--acento-suave);
+    padding: 10px 12px; border-radius: var(--radio);
+    font-size: 0.9rem; margin: 12px 0 0;
+  }
+  .alerta {
+    border: 1px solid var(--aviso-borde); border-left-width: 4px;
+    background: var(--aviso-fondo);
+    padding: 10px 12px; border-radius: var(--radio);
+    font-size: 0.9rem; margin: 10px 0 0;
+  }
+  .alerta::before { content: "⚠ "; font-weight: bold; }
+  .estado { font-size: 0.92rem; color: var(--texto-sec); margin: 0; padding: 10px 12px; border: 1px dashed var(--borde); border-radius: var(--radio); background: #fafafa; }
+  .estado.con-error { color: var(--error); border-color: var(--error); background: #fff; }
+
+  /* ---------- Pestañas ---------- */
+  .pestanas {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    background: #fff; border: 1px solid var(--borde); border-radius: 12px;
+    padding: 6px; margin: 0 0 16px;
+  }
+  .pestanas [role="tab"] {
+    font: inherit; font-size: 0.95rem; font-weight: bold;
+    flex: 0 1 auto;
+    padding: 9px 16px; min-height: 42px; line-height: 1.2;
+    border: 0; border-radius: var(--radio);
+    background: transparent; color: var(--texto-sec); cursor: pointer;
+  }
+  .pestanas [role="tab"]:hover { color: var(--primario); background: var(--acento-suave); }
+  .pestanas [role="tab"][aria-selected="true"] { background: var(--primario); color: #fff; }
+  .pestanas .num-pest { display: inline-block; margin-right: 6px; opacity: 0.75; }
+  @media (max-width: 559px) { .pestanas [role="tab"] { flex: 1 1 40%; font-size: 0.88rem; padding: 9px 8px; } }
+
+  /* ---------- Inicio ---------- */
+  .inicio { text-align: center; padding: 28px 0 12px; }
+  .inicio h2 { margin: 0; font-size: 2rem; line-height: 1.15; color: var(--primario); letter-spacing: -0.01em; }
+  .inicio .bajada { margin: 8px 0 0; font-size: 1.15rem; color: var(--primario); }
+  .inicio .intro { max-width: 60ch; margin: 16px auto 0; color: var(--texto-sec); font-size: 1rem; }
+  .pasos { list-style: none; max-width: 640px; margin: 26px auto 0; padding: 6px 22px; text-align: left;
+    background: #fff; border: 1px solid var(--borde); border-radius: var(--radio-g); }
+  .pasos li { display: flex; gap: 14px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid #e3e3e3; }
+  .pasos li:last-child { border-bottom: 0; }
+  .pasos .n { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--primario); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; }
+  .pasos strong { display: block; color: var(--primario); }
+  .pasos span.d { color: var(--texto-sec); font-size: 0.93rem; }
+  .inicio .aviso { max-width: 640px; margin: 18px auto 0; text-align: left; }
+  .btn.grande { font-size: 1.05rem; min-height: 50px; padding: 10px 34px; margin-top: 22px; border-radius: 10px; }
+
+  [role="tabpanel"] { padding-top: 0; }
+  [role="tabpanel"]:focus-visible { box-shadow: none; outline-offset: 4px; }
+
+  /* ---------- Filas dinámicas ---------- */
+  .filas { display: flex; flex-direction: column; gap: 10px; }
+  .fila {
+    display: grid; gap: 8px;
+    grid-template-columns: 1fr auto;
+    padding: 10px; border: 1px solid var(--borde); border-radius: var(--radio); background: #fcfcfc;
+  }
+  .fila .campo > label { font-weight: normal; font-size: 0.82rem; color: var(--texto-sec); }
+  .fila.gasto .c-nombre { grid-column: 1 / -1; }
+  .fila.gasto .c-monto { grid-column: 1 / 2; }
+  .fila.gasto .btn-eliminar { align-self: end; }
+  .fila.mp { grid-template-columns: 1fr 1fr; }
+  .fila.mp .c-nombre { grid-column: 1 / -1; }
+  .fila.mp .c-costo { justify-content: flex-end; }
+  .fila.mp .salida { font-weight: bold; min-height: 42px; display: flex; align-items: center; }
+  .fila.mp .btn-eliminar { justify-self: end; align-self: end; }
+  @media (min-width: 720px) {
+    .fila.gasto { grid-template-columns: 2fr 1.3fr auto; align-items: end; }
+    .fila.gasto .c-nombre, .fila.gasto .c-monto { grid-column: auto; }
+    .fila.mp { grid-template-columns: 1.6fr 1fr 1.2fr 0.9fr 1fr auto; align-items: end; }
+    .fila.mp .c-nombre { grid-column: auto; }
+  }
+  .fila.cif { grid-template-columns: 1fr auto; }
+  .fila.cif .campo { grid-column: 1 / -1; }
+  .fila.cif .c-nombre { grid-column: 1; grid-row: 1; }
+  .fila.cif .btn-eliminar { grid-column: 2; grid-row: 1; align-self: end; }
+  .fila.cif .salida-auto { min-height: 42px; display: flex; align-items: center; padding: 0 10px; border: 1px dashed var(--borde); border-radius: var(--radio); background: #fff; color: var(--texto-sec); font-size: 0.92rem; }
+  .fila.cif .c-res { grid-column: 1 / -1; margin: 0; font-size: 0.9rem; padding: 8px 10px; background: var(--acento-suave); border-radius: var(--radio); }
+  .fila.cif .c-res strong { color: var(--primario); }
+  @media (min-width: 720px) {
+    .fila.cif { grid-template-columns: 1.5fr 1.1fr 1.4fr auto; }
+    .fila.cif .c-nombre { grid-column: 1; grid-row: 1; }
+    .fila.cif .c-monto { grid-column: 2; grid-row: 1; }
+    .fila.cif .c-base { grid-column: 3; grid-row: 1; }
+    .fila.cif .btn-eliminar { grid-column: 4; grid-row: 1; }
+    .fila.cif .c-otra { grid-column: 1; grid-row: 2; }
+    .fila.cif .c-normal { grid-column: 2; grid-row: 2; }
+    .fila.cif .c-consumo { grid-column: 3 / 5; grid-row: 2; }
+    .fila.cif .c-res { grid-column: 1 / -1; grid-row: 3; }
+  }
+  .filas:empty::before { content: "Sin filas cargadas."; color: var(--texto-sec); font-size: 0.9rem; }
+  .agregar { margin-top: 10px; }
+
+  /* ---------- Resultados ---------- */
+  .resultados { margin-top: 16px; border: 1px solid var(--borde); border-top: 4px solid var(--acento); border-radius: var(--radio); padding: 14px; background: #fff; }
+  .resultados h3 { margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  .desglose td { padding: 7px 4px; border-bottom: 1px solid #e3e3e3; vertical-align: top; }
+  .desglose td:last-child { text-align: right; white-space: nowrap; padding-left: 12px; }
+  .desglose tr.sangria td:first-child { padding-left: 18px; color: var(--texto-sec); }
+  .desglose tr.sub td { font-weight: bold; }
+  .desglose tr.titulo td { font-weight: bold; color: var(--primario); padding-top: 14px; border-bottom: 1px solid var(--borde); }
+  .desglose tr.total td { font-weight: bold; font-size: 1.08rem; color: var(--primario); border-top: 2px solid var(--primario); border-bottom: 0; background: var(--acento-suave); padding: 10px 6px; }
+
+  .indicadores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 720px) { .indicadores { grid-template-columns: repeat(4, 1fr); } }
+  .indicador { border: 1px solid var(--borde); border-top: 3px solid var(--acento); border-radius: var(--radio); padding: 10px; background: #fff; }
+  .indicador .et { font-size: 0.8rem; color: var(--texto-sec); display: block; }
+  .indicador .va { font-size: 1.25rem; font-weight: bold; color: var(--primario); display: block; margin-top: 2px; word-break: break-word; }
+  .indicador.negativo .va { color: var(--error); }
+
+  .tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--borde); border-radius: var(--radio); }
+  .tabla-precios { min-width: 640px; }
+  .tabla-precios th, .tabla-precios td { padding: 8px; border-bottom: 1px solid #e3e3e3; text-align: right; }
+  .tabla-precios thead th { background: var(--primario); color: #fff; font-size: 0.9rem; }
+  .tabla-precios th[scope="row"] { text-align: left; font-weight: normal; color: var(--texto-sec); font-size: 0.9rem; white-space: nowrap; }
+  .tabla-precios tbody tr:first-child td { background: #fafafa; }
+  .tabla-precios tr.destacada td { font-weight: bold; color: var(--primario); background: var(--acento-suave); }
+  .tabla-precios td.neg { color: var(--error); font-weight: bold; }
+  .tabla-precios input { min-width: 80px; }
+  .tabla-precios .base-canal { display: block; font-size: 0.78rem; color: var(--texto-sec); margin-top: 3px; }
+
+  .casilla label { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; cursor: pointer; }
+  .casilla input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primario); }
+  .radios { display: flex; flex-wrap: wrap; gap: 8px 18px; border: 0; padding: 0; margin: 0; }
+  .radios legend { font-weight: bold; font-size: 0.92rem; margin-bottom: 6px; padding: 0; }
+  .radios label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; cursor: pointer; }
+  .radios input { width: 18px; height: 18px; accent-color: var(--primario); }
+
+  .aclaracion { font-size: 0.9rem; margin: 10px 0 0; padding: 8px 12px; border-left: 3px solid var(--acento); background: #fafcff; }
+
+  details.conceptos { border: 1px solid var(--borde); border-radius: var(--radio); background: #fff; }
+  details.conceptos summary { cursor: pointer; padding: 12px 14px; font-weight: bold; color: var(--primario); }
+  details.conceptos .cuerpo { padding: 0 14px 12px; font-size: 0.93rem; }
+  details.conceptos dt { font-weight: bold; margin-top: 10px; }
+  details.conceptos dd { margin: 2px 0 0; }
+  .formula { font-family: Helvetica, Arial, sans-serif; background: #f4f6f9; border-radius: 4px; padding: 1px 5px; }
+
+  .nota-costo { font-size: 0.85rem; color: var(--texto-sec); margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .nota-costo:empty { display: none; }
+
+  .pdf-zona { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--borde); }
+  .pdf-zona p { margin: 6px 0 0; font-size: 0.88rem; color: var(--texto-sec); }
+
+  /* ---------- Pie ---------- */
+  .pie { border-top: 1px solid var(--borde); background: #fff; padding: 18px 0; font-size: 0.88rem; color: var(--texto-sec); }
+  .pie p { margin: 0 0 4px; }
+  .pie strong { color: var(--primario); }
+
+  [hidden] { display: none !important; }
+
+  /* ---------- Informe para imprimir / PDF ---------- */
+  #informe { display: none; }
+
+  @media print {
+    @page { size: A4; margin: 14mm 14mm 16mm; }
+    body { background: #fff; font-size: 10.5pt; }
+    .app { display: none !important; }
+    #informe { display: block !important; color: #000; }
+    #informe .inf-enc { display: flex; align-items: center; gap: 12px; border-bottom: 3px solid var(--primario); padding-bottom: 8px; margin-bottom: 12px; }
+    #informe .inf-enc h1 { font-size: 16pt; margin: 0; color: var(--primario); }
+    #informe .inf-enc p { margin: 2px 0 0; font-size: 9.5pt; color: #444; }
+    #informe h2 { font-size: 11.5pt; color: var(--primario); margin: 14px 0 6px; border-bottom: 1px solid var(--borde); padding-bottom: 3px; break-after: avoid; }
+    #informe table { width: 100%; border-collapse: collapse; break-inside: avoid; }
+    #informe td, #informe th { padding: 4px 6px; border-bottom: 1px solid #ddd; font-size: 9.5pt; }
+    #informe td:last-child { text-align: right; }
+    #informe .inf-precios th, #informe .inf-precios td { text-align: right; }
+    #informe .inf-precios th:first-child, #informe .inf-precios td:first-child { text-align: left; }
+    #informe .inf-precios thead th { background: #eef2f7; color: var(--primario); }
+    #informe tr.total td { font-weight: bold; border-top: 1.5px solid #000; }
+    #informe tr.titulo td { font-weight: bold; color: var(--primario); }
+    #informe tr.sangria td:first-child { padding-left: 14px; }
+    #informe ul { margin: 4px 0; padding-left: 18px; font-size: 9.5pt; }
+    #informe .inf-pie { margin-top: 16px; border-top: 1px solid #999; padding-top: 6px; font-size: 9pt; color: #333; }
+    #informe .inf-nota { font-size: 9pt; color: #333; margin: 4px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="encabezado">
+    <div class="contenedor">
+      <div class="caja">
+        <div>
+          <h1>Calculadora para negocios</h1>
+          <p class="bajada">Costos, precios, margen y markup</p>
+          <span class="estudio js-estudio">Cr. Ignacio Dukardt</span>
+        </div>
+        <div class="lado">
+          <button type="button" class="btn-pildora" id="btn-reset-todo">Restablecer todo</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="contenido" class="contenedor">
+
+    <!-- ===================== PESTAÑAS ===================== -->
+    <div class="pestanas" role="tablist" aria-label="Secciones de la calculadora">
+      <button type="button" role="tab" id="tab-0" aria-controls="panel-0" aria-selected="true">Inicio</button>
+      <button type="button" role="tab" id="tab-1" aria-controls="panel-1" aria-selected="false" tabindex="-1"><span class="num-pest">1</span>Sector Reventa - Comercio</button>
+      <button type="button" role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1"><span class="num-pest">2</span>Sector Manufactura - Producción</button>
+      <button type="button" role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1"><span class="num-pest">3</span>Margen y Markup</button>
+    </div>
+
+    <!-- ===================== INICIO ===================== -->
+    <section role="tabpanel" id="panel-0" aria-labelledby="tab-0" tabindex="0" class="inicio">
+      <h2>Calculadora para negocios</h2>
+      <p class="bajada">Costos, precios, margen y markup</p>
+      <p class="intro">Armá el costo unitario de lo que vendés, ya sea mercadería que comprás para revender o productos que fabricás, y definí precios por canal sabiendo cuánto ganás en cada uno. Ingresá los valores en la moneda que uses (USD o ARS).</p>
+      <ol class="pasos">
+        <li><span class="n" aria-hidden="true">1</span><div><strong>Sector Reventa - Comercio</strong><span class="d">Precio de factura, descuentos y gastos de compra, por unidad o por lote.</span></div></li>
+        <li><span class="n" aria-hidden="true">2</span><div><strong>Sector Manufactura - Producción</strong><span class="d">Materia prima con merma, mano de obra directa y costos indirectos asignados con su propia base.</span></div></li>
+        <li><span class="n" aria-hidden="true">3</span><div><strong>Margen y Markup</strong><span class="d">Precio de venta, markup, margen y estructura de precios por canal, con informe en PDF.</span></div></li>
+      </ol>
+      <p class="aviso">Todo el cálculo se hace en tu navegador: no se guarda ni se envía ningún dato. Es una estimación orientativa y no reemplaza el asesoramiento profesional.</p>
+      <button type="button" class="btn principal grande" id="btn-empezar">Empezar</button>
+    </section>
+
+    <!-- ===================== CONFIGURACIÓN GENERAL ===================== -->
+    <section class="tarjeta" id="cfg" aria-labelledby="cfg-titulo" hidden>
+      <div class="cabecera">
+        <h2 id="cfg-titulo">Configuración general</h2>
+      </div>
+
+      <div class="grilla dos">
+        <div class="campo">
+          <label for="cfg-tipo">Tipo de contribuyente</label>
+          <select id="cfg-tipo">
+            <option value="mono">Monotributista</option>
+            <option value="ri">Responsable inscripto</option>
+          </select>
+          <p class="ayuda" data-solo="mono">El monotributo no discrimina IVA: los precios que cargues son precios finales.</p>
+          <p class="ayuda" data-solo="ri" hidden>Los precios de venta se toman como netos de IVA.</p>
+        </div>
+
+        <div class="campo" data-solo="ri" hidden>
+          <label for="cfg-iibb">Ingresos Brutos (alícuota %)</label>
+          <div class="afijo suf"><input type="text" class="num" id="cfg-iibb" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="cfg-iibb-err cfg-iibb-ayuda"><span aria-hidden="true">%</span></div>
+          <p class="ayuda" id="cfg-iibb-ayuda">Se aplica sobre el precio neto de venta.</p>
+          <p class="error" id="cfg-iibb-err"></p>
+        </div>
+
+        <div class="campo" data-solo="ri" hidden>
+          <label for="cfg-iva">IVA (alícuota %)</label>
+          <div class="afijo suf"><input type="text" class="num" id="cfg-iva" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="cfg-iva-err"><span aria-hidden="true">%</span></div>
+          <p class="error" id="cfg-iva-err"></p>
+        </div>
+      </div>
+
+      <p class="ayuda" style="margin-top:10px">Ingresá los valores en la moneda que uses (USD o ARS). El símbolo $ es fijo y no se convierte.</p>
+      <p class="aviso" data-solo="mono">Monotributo: la cuota mensual (que ya incluye el componente de Ingresos Brutos) es un costo fijo y no se suma al costo unitario. Acá se calculan solo los costos variables.</p>
+      <p class="aviso" data-solo="ri" hidden><strong>Cargá los costos de compra sin IVA, porque el IVA es crédito fiscal y no un costo.</strong></p>
+      <p class="aviso" data-solo="ri" hidden>Las alícuotas son las que cargue el usuario. Verificarlas con la normativa vigente de su jurisdicción.</p>
+    </section>
+
+
+    <!-- ===================== PESTAÑA 1 ===================== -->
+    <section role="tabpanel" id="panel-1" aria-labelledby="tab-1" tabindex="0" hidden>
+      <div class="tarjeta">
+        <div class="cabecera">
+          <h2>Costo de mercadería para reventa</h2>
+          <button type="button" class="btn chico" data-limpiar="1">Limpiar pestaña</button>
+        </div>
+        <p class="ayuda" style="margin:0 0 14px">Costeo por absorción: el costo de cada unidad incluye el precio de compra y todos los gastos necesarios para tenerla disponible para la venta.</p>
+        <p class="aviso" data-solo="ri" hidden style="margin:0 0 14px">Responsable inscripto: cargá los importes sin IVA.</p>
+
+        <div class="seccion">
+          <h3>Datos de la compra</h3>
+          <div class="grilla dos">
+            <div class="campo">
+              <label for="t1-cant">Cantidad de unidades compradas (lote)</label>
+              <input type="text" class="num" id="t1-cant" data-tipo="cantidad" inputmode="decimal" autocomplete="off" aria-describedby="t1-cant-err">
+              <p class="error" id="t1-cant-err"></p>
+            </div>
+            <div class="campo casilla">
+              <span class="rotulo">¿El precio de factura es por unidad?</span>
+              <label for="t1-porunidad"><input type="checkbox" id="t1-porunidad" aria-describedby="t1-porunidad-ayuda"> Sí, el precio es por unidad</label>
+              <p class="ayuda" id="t1-porunidad-ayuda">Si no lo tildás, el precio se toma como el total del lote.</p>
+            </div>
+            <div class="campo">
+              <label for="t1-pf" id="t1-pf-rotulo">Precio de factura del lote (lista)</label>
+              <div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num" id="t1-pf" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="t1-pf-err"></div>
+              <p class="error" id="t1-pf-err"></p>
+            </div>
+            <div class="campo">
+              <label for="t1-desc">Descuentos sobre el precio de factura</label>
+              <div class="afijo suf"><input type="text" class="num" id="t1-desc" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="t1-desc-err"><span aria-hidden="true">%</span></div>
+              <p class="error" id="t1-desc-err"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="seccion">
+          <h3 id="t1-gastos-tit">Gastos de compra</h3>
+          <p class="ayuda" style="margin:0 0 10px">Monto total de cada gasto para todo el lote. Se reparte entre las unidades compradas.</p>
+          <div class="filas" id="t1-gastos" data-rotulo-monto="Monto total del lote" data-prefijo="Gasto de compra" aria-labelledby="t1-gastos-tit"></div>
+          <button type="button" class="btn chico agregar" data-agregar="t1-gastos" data-clase="gasto">+ Agregar otro costo</button>
+        </div>
+
+        <div class="resultados" aria-labelledby="t1-res-tit">
+          <h3 id="t1-res-tit">Desglose del costo unitario</h3>
+          <div id="t1-res"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PESTAÑA 2 ===================== -->
+    <section role="tabpanel" id="panel-2" aria-labelledby="tab-2" tabindex="0" hidden>
+      <div class="tarjeta">
+        <div class="cabecera">
+          <h2>Costo de producción</h2>
+          <button type="button" class="btn chico" data-limpiar="2">Limpiar pestaña</button>
+        </div>
+        <p class="ayuda" style="margin:0 0 14px">Costeo por absorción: cada unidad absorbe materia prima, mano de obra directa y su parte de los costos indirectos de fabricación.</p>
+        <p class="aviso" data-solo="ri" hidden style="margin:0 0 14px">Responsable inscripto: cargá los importes sin IVA.</p>
+
+        <div class="seccion">
+          <h3>Datos del lote</h3>
+          <div class="grilla dos">
+            <div class="campo">
+              <label for="t2-rend">Unidades que salen del lote (rendimiento)</label>
+              <input type="text" class="num" id="t2-rend" data-tipo="cantidad" inputmode="decimal" autocomplete="off" aria-describedby="t2-rend-err">
+              <p class="error" id="t2-rend-err"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="seccion">
+          <h3 id="t2-mp-tit">Materia prima</h3>
+          <p class="ayuda" style="margin:0 0 10px">Costo de cada insumo = cantidad × precio unitario ÷ (1 − merma %). La merma debe ser menor que 100%.</p>
+          <div class="filas" id="t2-mp" aria-labelledby="t2-mp-tit"></div>
+          <button type="button" class="btn chico agregar" data-agregar="t2-mp" data-clase="mp">+ Agregar otro costo</button>
+        </div>
+
+        <div class="seccion">
+          <h3 id="t2-mo-tit">Mano de obra directa</h3>
+          <div class="grilla dos">
+            <div class="campo">
+              <label for="t2-vh">Valor hora (sueldo más cargas sociales)</label>
+              <div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num" id="t2-vh" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="t2-vh-err"></div>
+              <p class="error" id="t2-vh-err"></p>
+            </div>
+            <div class="campo">
+              <label for="t2-horas">Horas de transformación del lote</label>
+              <input type="text" class="num" id="t2-horas" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="t2-horas-err">
+              <p class="error" id="t2-horas-err"></p>
+            </div>
+          </div>
+          <p class="ayuda" style="margin:10px 0">Otros costos de mano de obra del lote (por ejemplo, horas extra o un trabajo tercerizado):</p>
+          <div class="filas" id="t2-mo" data-rotulo-monto="Monto del lote" data-prefijo="Otro costo de mano de obra" aria-labelledby="t2-mo-tit"></div>
+          <button type="button" class="btn chico agregar" data-agregar="t2-mo" data-clase="gasto">+ Agregar otro costo</button>
+        </div>
+
+        <div class="seccion">
+          <h3 id="t2-cif-tit">Costos indirectos de fabricación (CIF)</h3>
+          <p class="ayuda" style="margin:0 0 10px">Cada rubro se asigna con su propia base. Tasa del rubro = monto mensual ÷ base normal del mes. CIF asignado al lote = tasa × base que consume el lote.</p>
+          <div class="filas" id="t2-cif" data-prefijo="Costo indirecto" aria-labelledby="t2-cif-tit"></div>
+          <button type="button" class="btn chico agregar" data-agregar="t2-cif" data-clase="cif">+ Agregar otro costo</button>
+        </div>
+
+        <div class="resultados" aria-labelledby="t2-res-tit">
+          <h3 id="t2-res-tit">Desglose del costo unitario</h3>
+          <div id="t2-res"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PESTAÑA 3 ===================== -->
+    <section role="tabpanel" id="panel-3" aria-labelledby="tab-3" tabindex="0" hidden>
+      <div class="tarjeta">
+        <div class="cabecera">
+          <h2>Margen y Markup</h2>
+          <button type="button" class="btn chico" data-limpiar="3">Limpiar pestaña</button>
+        </div>
+
+        <div class="seccion">
+          <h3>Costo unitario</h3>
+          <div class="grilla dos">
+            <div class="campo">
+              <label for="t3-origen">Costo unitario tomado de</label>
+              <select id="t3-origen">
+                <option value="comercio">Sector Reventa - Comercio (pestaña 1)</option>
+                <option value="manufactura">Sector Manufactura - Producción (pestaña 2)</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label for="t3-costo">Costo unitario</label>
+              <div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num" id="t3-costo" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="t3-costo-err t3-costo-nota"></div>
+              <p class="error" id="t3-costo-err"></p>
+              <div class="nota-costo" id="t3-costo-nota"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="seccion">
+          <h3>Precio de venta</h3>
+          <fieldset class="radios">
+            <legend>¿Cómo querés cargar el precio?</legend>
+            <label><input type="radio" name="t3-forma" value="mult" checked> Por multiplicador sobre el costo</label>
+            <label><input type="radio" name="t3-forma" value="precio"> Por precio de venta</label>
+          </fieldset>
+          <div class="grilla dos" style="margin-top:10px">
+            <div class="campo" id="t3-campo-mult">
+              <label for="t3-mult">Multiplicador sobre el costo</label>
+              <input type="text" class="num" id="t3-mult" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="t3-mult-err t3-mult-ayuda">
+              <p class="ayuda" id="t3-mult-ayuda">Ejemplo: 2,5 significa vender a 2,5 veces el costo.</p>
+              <p class="error" id="t3-mult-err"></p>
+            </div>
+            <div class="campo" id="t3-campo-precio" hidden>
+              <label for="t3-precio"><span data-solo="mono">Precio de venta</span><span data-solo="ri" hidden>Precio de venta neto de IVA</span></label>
+              <div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num" id="t3-precio" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="t3-precio-err"></div>
+              <p class="error" id="t3-precio-err"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="resultados" aria-labelledby="t3-res-tit">
+          <h3 id="t3-res-tit">Resultado por unidad</h3>
+          <div id="t3-res"></div>
+          <p class="aclaracion">El markup se calcula sobre el costo y el margen sobre el precio de venta.</p>
+        </div>
+
+        <div class="seccion" style="border-top:0;margin-top:20px;padding-top:0">
+          <h3 id="t3-tabla-tit">Estructura de precios</h3>
+          <p class="ayuda" style="margin:0 0 10px">Efectivo toma el precio de venta. Tarjeta y Mercado Pago aplica su recargo sobre efectivo. Descuento y Precio mayorista se calculan sobre el precio de Tarjeta y Mercado Pago. Ajuste positivo = recargo, negativo = descuento.</p>
+          <div class="tabla-scroll" role="region" aria-labelledby="t3-tabla-tit" tabindex="0">
+            <table class="tabla-precios" id="t3-tabla">
+              <thead>
+                <tr>
+                  <th scope="col"><span class="sr-only">Concepto</span></th>
+                  <th scope="col">Efectivo</th>
+                  <th scope="col">Tarjeta y Mercado Pago</th>
+                  <th scope="col">Descuento</th>
+                  <th scope="col">Precio mayorista</th>
+                </tr>
+              </thead>
+              <tbody id="t3-tabla-cuerpo">
+                <tr>
+                  <th scope="row">Ajuste</th>
+                  <td><span class="base-canal">= Precio de venta</span></td>
+                  <td><label class="sr-only" for="aj-1">Ajuste % Tarjeta y Mercado Pago</label><div class="afijo suf"><input type="text" class="num" id="aj-1" data-tipo="pctsigno" inputmode="decimal" autocomplete="off" aria-describedby="aj-1-err aj-1-base"><span aria-hidden="true">%</span></div><span class="base-canal" id="aj-1-base">sobre Efectivo</span><p class="error" id="aj-1-err"></p></td>
+                  <td><label class="sr-only" for="aj-2">Ajuste % Descuento</label><div class="afijo suf"><input type="text" class="num" id="aj-2" data-tipo="pctsigno" inputmode="decimal" autocomplete="off" aria-describedby="aj-2-err aj-2-base"><span aria-hidden="true">%</span></div><span class="base-canal" id="aj-2-base">sobre Tarjeta y Mercado Pago</span><p class="error" id="aj-2-err"></p></td>
+                  <td><label class="sr-only" for="aj-3">Ajuste % Precio mayorista</label><div class="afijo suf"><input type="text" class="num" id="aj-3" data-tipo="pctsigno" inputmode="decimal" autocomplete="off" aria-describedby="aj-3-err aj-3-base"><span aria-hidden="true">%</span></div><span class="base-canal" id="aj-3-base">sobre Tarjeta y Mercado Pago</span><p class="error" id="aj-3-err"></p></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="t3-tabla-alertas"></div>
+        </div>
+
+        <div class="pdf-zona">
+          <div class="acciones">
+            <button type="button" class="btn principal" id="btn-pdf" aria-describedby="pdf-motivo">Descargar PDF</button>
+          </div>
+          <p id="pdf-motivo" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <details class="conceptos">
+        <summary>Conceptos clave y fórmulas</summary>
+        <div class="cuerpo">
+          <dl>
+            <dt>Costeo por absorción</dt>
+            <dd>Cada unidad carga con todos los costos necesarios para tenerla lista para vender: compra, traslado, insumos, trabajo y una parte de los gastos fijos del taller o del local.</dd>
+
+            <dt>Costo de adquisición (comercio)</dt>
+            <dd><span class="formula">Precio neto de factura = precio de factura − descuentos</span>. Si el precio es del lote, al neto se le suman los gastos de compra y el total se divide por la cantidad de unidades. Si el precio es por unidad, al neto unitario se le suman los gastos de compra divididos por la cantidad.</dd>
+
+            <dt>Merma</dt>
+            <dd>Parte del insumo que se pierde en el proceso (recortes, roturas, evaporación). Para obtener lo que necesitás, comprás de más: <span class="formula">costo = cantidad × precio ÷ (1 − merma %)</span>.</dd>
+
+            <dt>Mano de obra directa</dt>
+            <dd>Horas de trabajo aplicadas al lote, valuadas con el sueldo más las cargas sociales: <span class="formula">valor hora × horas</span>.</dd>
+
+            <dt>CIF y bases de asignación</dt>
+            <dd>Los costos indirectos de fabricación no se pueden medir directamente en cada unidad, así que cada rubro se reparte con la base que mejor explica su consumo: unidades producidas, horas de mano de obra directa, horas máquina, kilos de materia prima u otra. La base del mes se toma en un nivel normal de actividad, no en un mes excepcional: <span class="formula">tasa del rubro = monto mensual ÷ base normal del mes</span>; <span class="formula">CIF del lote = tasa × base que consume el lote</span>; <span class="formula">CIF por unidad = CIF del lote ÷ rendimiento</span>.</dd>
+
+            <dt>Monotributo</dt>
+            <dd>La cuota mensual es un costo fijo e incluye el componente de Ingresos Brutos, por eso no se suma al costo unitario ni se calcula Ingresos Brutos aparte. El costo que se arma acá es el costo variable de cada unidad.</dd>
+
+            <dt>Multiplicador</dt>
+            <dd>Cuántas veces el costo vale el precio: <span class="formula">precio = costo × multiplicador</span>. Un multiplicador menor que 1 implica vender por debajo del costo.</dd>
+
+            <dt>Markup</dt>
+            <dd>Ganancia expresada como porcentaje del <em>costo</em>: <span class="formula">(precio − costo) ÷ costo × 100</span>.</dd>
+
+            <dt>Margen</dt>
+            <dd>Ganancia expresada como porcentaje del <em>precio de venta</em>: <span class="formula">(precio − costo) ÷ precio × 100</span>. Por eso un markup de 150% equivale a un margen de 60%: miden lo mismo sobre bases distintas.</dd>
+
+            <dt>IVA (responsable inscripto)</dt>
+            <dd>El IVA de las compras es crédito fiscal y el de las ventas, débito fiscal: no forma parte del costo ni de la ganancia. <span class="formula">precio con IVA = precio neto × (1 + IVA %)</span>.</dd>
+
+            <dt>Ingresos Brutos (responsable inscripto)</dt>
+            <dd>Impuesto provincial sobre la facturación. Se calcula sobre el precio neto y reduce la ganancia: <span class="formula">IIBB por unidad = precio neto × alícuota %</span>; <span class="formula">margen después de IIBB = (precio − costo − IIBB) ÷ precio</span>.</dd>
+
+            <dt>Estructura de precios</dt>
+            <dd>Efectivo es el precio de venta. Tarjeta y Mercado Pago, que suele ser el precio más alto, aplica un recargo sobre efectivo: <span class="formula">precio tarjeta = precio de venta × (1 + ajuste %)</span>. Descuento y Precio mayorista parten del precio de tarjeta: <span class="formula">precio = precio tarjeta × (1 + ajuste %)</span>. El margen real de cada canal se calcula sobre su propio precio.</dd>
+          </dl>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div class="contenedor">
+      <p>Estimación orientativa. No reemplaza el asesoramiento profesional.</p>
+      <p><strong class="js-estudio">Cr. Ignacio Dukardt</strong></p>
+    </div>
+  </footer>
+</div>
+
+<!-- Informe que solo se ve al imprimir / guardar como PDF. Se completa con JavaScript. -->
+<div id="informe" aria-hidden="true"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     Utilidades
+     ============================================================ */
+  var $ = function (sel, raiz) { return (raiz || document).querySelector(sel); };
+  var $$ = function (sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); };
+  var byId = function (id) { return document.getElementById(id); };
+
+  var ESTUDIO = document.documentElement.getAttribute('data-estudio') || '';
+  $$('.js-estudio').forEach(function (el) { el.textContent = ESTUDIO; });
+
+  function escaparHTML(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* Formato numérico propio (independiente de la configuración regional del navegador):
+     punto para miles y coma para decimales. */
+  function agrupar(n, dec) {
+    var s = Math.abs(n).toFixed(dec);
+    var partes = s.split('.');
+    var ent = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return ent + (partes[1] ? ',' + partes[1] : '');
+  }
+  function redondear2(n) { var r = Math.round((n + (n >= 0 ? 1 : -1) * 1e-9) * 100) / 100; return r === 0 ? 0 : r; }
+  /* Enteros sin decimales; con decimales, siempre dos (p. ej. 892,50 o 56,50). */
+  function fmt(n) {
+    var r = redondear2(n);
+    var entero = Math.abs(r - Math.round(r)) < 1e-9;
+    return (r < 0 ? '−' : '') + agrupar(r, entero ? 0 : 2);
+  }
+  function dinero(n) { var r = redondear2(n); return (r < 0 ? '−' : '') + '$' + fmt(Math.abs(r)); }
+  function porc(n) { return fmt(n) + '%'; }
+  /* Multiplicadores y cantidades: hasta 4 decimales, sin ceros a la derecha. */
+  function fmtLibre(n) {
+    var r = Math.round(n * 10000) / 10000;
+    if (r === 0) r = 0;
+    var s = agrupar(r, 4).replace(/,?0+$/, '');
+    return (r < 0 ? '−' : '') + s;
+  }
+  /* Texto para volver a mostrar un número dentro de un campo. */
+  function aCampo(n, agruparMiles) {
+    var r = Math.round(n * 1e6) / 1e6;
+    var s = Math.abs(r).toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+    var p = s.split('.');
+    var ent = agruparMiles ? p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') : p[0];
+    return (r < 0 ? '-' : '') + ent + (p[1] ? ',' + p[1] : '');
+  }
+
+  /* ------------------------------------------------------------
+     Lectura de números: acepta coma o punto como separador decimal.
+     - "1.000.000", "1.000.000,50", "1,000,000.50" → miles + decimales.
+     - En montos y cantidades, "1.000" (un punto seguido de 3 dígitos)
+       se interpreta como mil. En porcentajes y multiplicadores, un
+       único punto siempre es decimal ("2.5" = 2,5).
+     ------------------------------------------------------------ */
+  function leerNumero(texto, tipo) {
+    var s = String(texto || '').replace(/[\s $%]/g, '').replace(/[−–]/g, '-');
+    if (s === '') return { vacio: true };
+    var neg = false;
+    if (s.charAt(0) === '-') { neg = true; s = s.slice(1); }
+    else if (s.charAt(0) === '+') { s = s.slice(1); }
+    if (!/^[\d.,]+$/.test(s) || !/\d/.test(s)) return { error: 'Ingresá un número válido (por ejemplo 1.500 o 2,5).' };
+
+    var tienePunto = s.indexOf('.') >= 0, tieneComa = s.indexOf(',') >= 0, limpio;
+    if (tienePunto && tieneComa) {
+      var dec = s.lastIndexOf('.') > s.lastIndexOf(',') ? '.' : ',';
+      var mil = dec === '.' ? ',' : '.';
+      var ent = s.slice(0, s.lastIndexOf(dec)), frac = s.slice(s.lastIndexOf(dec) + 1);
+      if (ent.indexOf(dec) >= 0 || frac.indexOf(mil) >= 0) return { error: 'El formato del número no es válido.' };
+      limpio = ent.split(mil).join('') + '.' + frac;
+    } else if (tieneComa) {
+      var nComas = s.split(',').length - 1;
+      if (nComas === 1) limpio = s.replace(',', '.');
+      else if (/^\d{1,3}(,\d{3})+$/.test(s)) limpio = s.split(',').join('');
+      else return { error: 'El formato del número no es válido.' };
+    } else if (tienePunto) {
+      var nPuntos = s.split('.').length - 1;
+      if (nPuntos > 1) {
+        if (/^\d{1,3}(\.\d{3})+$/.test(s)) limpio = s.split('.').join('');
+        else return { error: 'El formato del número no es válido.' };
+      } else if ((tipo === 'monto' || tipo === 'cantidad') && /^[1-9]\d{0,2}\.\d{3}$/.test(s)) {
+        limpio = s.replace('.', '');
+      } else {
+        limpio = s;
+      }
+    } else {
+      limpio = s;
+    }
+    if (limpio.charAt(0) === '.') limpio = '0' + limpio;
+    if (limpio.charAt(limpio.length - 1) === '.') limpio = limpio.slice(0, -1);
+    var v = Number(limpio);
+    if (!isFinite(v)) return { error: 'Ingresá un número válido.' };
+    return { valor: neg ? -v : v };
+  }
+
+  /* Contexto de validación de cada bloque de cálculo */
+  function nuevoCtx() { return { faltan: [], errores: [] }; }
+  function ctxOk(ctx) { return ctx.faltan.length === 0 && ctx.errores.length === 0; }
+
+  function zonaError(el) {
+    var id = el.getAttribute('aria-describedby');
+    if (id) {
+      var ids = id.split(/\s+/);
+      for (var i = 0; i < ids.length; i++) if (/-err$/.test(ids[i])) return byId(ids[i]);
+    }
+    return null;
+  }
+
+  /* Lee y valida un campo numérico.
+     op: { rotulo, requerido, positivo, max, menorQue, mayorQue, negativos, msgVacio } */
+  function num(elOId, ctx, op) {
+    var el = typeof elOId === 'string' ? byId(elOId) : elOId;
+    var r = leerNumero(el.value, el.getAttribute('data-tipo'));
+    var msg = '', valor = null;
+    if (r.vacio) {
+      if (op.requerido) { msg = op.msgVacio || 'Completá este campo.'; ctx.faltan.push(op.rotulo); }
+      else valor = 0;
+    } else if (r.error) {
+      msg = r.error; ctx.errores.push(op.rotulo);
+    } else {
+      valor = r.valor;
+      if (!op.negativos && valor < 0) msg = 'No se admiten valores negativos.';
+      else if (op.positivo && valor <= 0) msg = 'Debe ser mayor que 0.';
+      else if (op.max != null && valor > op.max) msg = 'No puede ser mayor que ' + fmt(op.max) + (op.sufijo || '') + '.';
+      else if (op.menorQue != null && valor >= op.menorQue) msg = 'Debe ser menor que ' + fmt(op.menorQue) + (op.sufijo || '') + '.';
+      else if (op.mayorQue != null && valor <= op.mayorQue) msg = 'Debe ser mayor que ' + fmt(op.mayorQue) + (op.sufijo || '') + '.';
+      if (msg) { ctx.errores.push(op.rotulo); valor = null; }
+    }
+    /* Un campo obligatorio vacío solo se marca después de que el usuario pasó por él. */
+    var mostrar = msg && !(r.vacio && !el.dataset.tocado);
+    var z = zonaError(el);
+    if (z) z.textContent = mostrar ? msg : '';
+    el.setAttribute('aria-invalid', mostrar ? 'true' : 'false');
+    return valor;
+  }
+
+  function limpiarMarca(el) {
+    el.setAttribute('aria-invalid', 'false');
+    var z = zonaError(el); if (z) z.textContent = '';
+  }
+
+  function estadoHTML(ctx, extra) {
+    var partes = [];
+    if (extra) partes.push(extra);
+    if (ctx.errores.length) partes.push('Revisá los campos marcados: ' + unicos(ctx.errores).join(', ') + '.');
+    if (ctx.faltan.length) partes.push('Para calcular, completá: ' + unicos(ctx.faltan).join(', ') + '.');
+    var conError = ctx.errores.length > 0;
+    return '<p class="estado' + (conError ? ' con-error' : '') + '" role="status">' + partes.map(escaparHTML).join(' ') + '</p>';
+  }
+  function unicos(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
+
+  function tablaDesglose(filas, etiqueta) {
+    var h = '<table class="desglose"><caption class="sr-only">' + escaparHTML(etiqueta) + '</caption><tbody>';
+    filas.forEach(function (f) {
+      h += '<tr' + (f[2] ? ' class="' + f[2] + '"' : '') + '><td>' + escaparHTML(f[0]) + '</td><td>' + escaparHTML(f[1] == null ? '' : f[1]) + '</td></tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  /* ============================================================
+     Filas dinámicas
+     ============================================================ */
+  var contadorFilas = 0;
+
+  function agregarFila(lista, clase, datos) {
+    datos = datos || {};
+    var id = 'f' + (++contadorFilas);
+    var fila = document.createElement('div');
+    fila.className = 'fila ' + clase;
+    var h;
+    if (clase === 'mp') {
+      h =
+        '<div class="campo c-nombre"><label for="' + id + '-n">Insumo</label>' +
+          '<input type="text" id="' + id + '-n" class="js-nombre" autocomplete="off"></div>' +
+        '<div class="campo"><label for="' + id + '-c">Cantidad por lote</label>' +
+          '<input type="text" class="num js-cant" id="' + id + '-c" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-c-err"><p class="error" id="' + id + '-c-err"></p></div>' +
+        '<div class="campo"><label for="' + id + '-p">Precio unitario</label>' +
+          '<div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num js-precio" id="' + id + '-p" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-p-err"></div><p class="error" id="' + id + '-p-err"></p></div>' +
+        '<div class="campo"><label for="' + id + '-m">Merma</label>' +
+          '<div class="afijo suf"><input type="text" class="num js-merma" id="' + id + '-m" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-m-err"><span aria-hidden="true">%</span></div><p class="error" id="' + id + '-m-err"></p></div>' +
+        '<div class="campo c-costo"><span class="rotulo" style="font-weight:normal;font-size:.82rem;color:#555">Costo del insumo</span>' +
+          '<output class="salida js-salida" for="' + id + '-c ' + id + '-p ' + id + '-m">—</output></div>' +
+        '<button type="button" class="btn-eliminar" data-eliminar aria-label="Eliminar insumo">×</button>';
+    } else if (clase === 'cif') {
+      h =
+        '<div class="campo c-nombre"><label for="' + id + '-n">Concepto</label>' +
+          '<input type="text" id="' + id + '-n" class="js-nombre" autocomplete="off"></div>' +
+        '<div class="campo c-monto"><label for="' + id + '-a">Monto mensual</label>' +
+          '<div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num js-monto" id="' + id + '-a" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-a-err"></div><p class="error" id="' + id + '-a-err"></p></div>' +
+        '<div class="campo c-base"><label for="' + id + '-b">Base de asignación</label>' +
+          '<select id="' + id + '-b" class="js-base">' +
+            Object.keys(BASES).map(function (k) { return '<option value="' + k + '">' + BASES[k].opcion + '</option>'; }).join('') +
+          '</select></div>' +
+        '<div class="campo c-otra" hidden><label for="' + id + '-o">Nombre de la base</label>' +
+          '<input type="text" id="' + id + '-o" class="js-otra" autocomplete="off" placeholder="Ej.: metros de tela, cargas de horno"></div>' +
+        '<div class="campo c-normal"><label for="' + id + '-bn" class="js-rot-normal">Base normal del mes</label>' +
+          '<input type="text" class="num js-normal" id="' + id + '-bn" data-tipo="cantidad" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-bn-err"><p class="error" id="' + id + '-bn-err"></p></div>' +
+        '<div class="campo c-consumo"><label for="' + id + '-bl" class="js-rot-consumo">Base que consume el lote</label>' +
+          '<input type="text" class="num js-consumo" id="' + id + '-bl" data-tipo="pct" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-bl-err">' +
+          '<output class="salida-auto js-consumo-auto" hidden></output><p class="error" id="' + id + '-bl-err"></p></div>' +
+        '<p class="c-res js-res">Cargá el monto mensual para ver la tasa.</p>' +
+        '<button type="button" class="btn-eliminar" data-eliminar aria-label="Eliminar costo">×</button>';
+    } else {
+      var rotuloMonto = lista.getAttribute('data-rotulo-monto') || 'Monto';
+      h =
+        '<div class="campo c-nombre"><label for="' + id + '-n">Concepto</label>' +
+          '<input type="text" id="' + id + '-n" class="js-nombre" autocomplete="off"></div>' +
+        '<div class="campo c-monto"><label for="' + id + '-a">' + escaparHTML(rotuloMonto) + '</label>' +
+          '<div class="afijo pre"><span aria-hidden="true">$</span><input type="text" class="num js-monto" id="' + id + '-a" data-tipo="monto" inputmode="decimal" autocomplete="off" aria-describedby="' + id + '-a-err"></div><p class="error" id="' + id + '-a-err"></p></div>' +
+        '<button type="button" class="btn-eliminar" data-eliminar aria-label="Eliminar costo">×</button>';
+    }
+    fila.innerHTML = h;
+    lista.appendChild(fila);
+    if (datos.nombre) $('.js-nombre', fila).value = datos.nombre;
+    if (datos.monto != null && $('.js-monto', fila)) $('.js-monto', fila).value = datos.monto;
+    actualizarRotuloEliminar(fila);
+    return fila;
+  }
+
+  function actualizarRotuloEliminar(fila) {
+    var n = $('.js-nombre', fila).value.trim();
+    var base = fila.classList.contains('mp') ? 'Eliminar insumo' : 'Eliminar costo';
+    $('[data-eliminar]', fila).setAttribute('aria-label', n ? base + ': ' + n : base);
+  }
+
+  /* Bases de asignación disponibles para los CIF.
+     auto: la base que consume el lote se toma de otro dato de la pestaña. */
+  var BASES = {
+    unidades: { opcion: 'Unidades producidas', plural: 'unidades', singular: 'unidad', auto: 'rendimiento' },
+    hmod: { opcion: 'Horas de mano de obra directa', plural: 'horas de MOD', singular: 'hora de MOD', auto: 'horas' },
+    hmaq: { opcion: 'Horas máquina', plural: 'horas máquina', singular: 'hora máquina' },
+    kg: { opcion: 'Kilos de materia prima', plural: 'kilos de materia prima', singular: 'kilo de materia prima' },
+    otra: { opcion: 'Otra base', plural: '', singular: '' }
+  };
+
+  /* Lee las filas de CIF. Cada rubro: tasa = monto mensual ÷ base normal del mes;
+     asignado al lote = tasa × base que consume el lote. */
+  function leerFilasCIF(lista, ctx, rend, horas, horasCargadas) {
+    var out = [];
+    $$('.fila', lista).forEach(function (fila, i) {
+      var nombre = $('.js-nombre', fila).value.trim() || ('Costo indirecto ' + (i + 1));
+      var clave = $('.js-base', fila).value;
+      var b = BASES[clave];
+      var otraNombre = $('.js-otra', fila).value.trim();
+      var plural = clave === 'otra' ? (otraNombre || 'unidades de la base') : b.plural;
+      var singular = clave === 'otra' ? (otraNombre || 'unidad de la base') : b.singular;
+      $('.c-otra', fila).hidden = clave !== 'otra';
+      $('.js-rot-normal', fila).textContent = 'Base normal del mes (' + plural + ')';
+      $('.js-rot-consumo', fila).textContent = 'Base que consume el lote (' + plural + ')';
+
+      var elC = $('.js-consumo', fila), auto = $('.js-consumo-auto', fila), res = $('.js-res', fila);
+      elC.hidden = !!b.auto; auto.hidden = !b.auto;
+
+      var monto = num($('.js-monto', fila), ctx, { rotulo: 'monto mensual de ' + nombre });
+      var activo = monto != null && monto > 0;
+      var normal = num($('.js-normal', fila), ctx, {
+        rotulo: 'base normal del mes de ' + nombre, requerido: activo, positivo: true,
+        msgVacio: 'Indicá la base normal del mes para calcular la tasa.'
+      });
+
+      var consumo = null;
+      if (b.auto === 'rendimiento') {
+        limpiarMarca(elC);
+        consumo = rend;
+        auto.textContent = rend != null ? fmtLibre(rend) + ' ' + (rend === 1 ? 'unidad' : 'unidades') + ' (rendimiento del lote)' : 'Se toma del rendimiento del lote';
+      } else if (b.auto === 'horas') {
+        limpiarMarca(elC);
+        consumo = horasCargadas ? horas : null;
+        auto.textContent = consumo != null ? fmtLibre(consumo) + ' horas (de Mano de obra directa)' : 'Se toman las horas cargadas en Mano de obra directa';
+        if (activo && !horasCargadas) ctx.faltan.push('horas de transformación del lote (las usa ' + nombre + ')');
+      } else {
+        consumo = num(elC, ctx, { rotulo: 'base que consume el lote de ' + nombre, requerido: activo });
+      }
+
+      if (!activo) {
+        res.textContent = monto === 0 ? 'Sin monto: no suma al costo.' : 'Cargá el monto mensual para ver la tasa.';
+        out.push({ nombre: nombre, monto: monto || 0, activo: false });
+        return;
+      }
+      if (normal == null || consumo == null) {
+        res.textContent = 'Completá la base para calcular la tasa.';
+        out.push({ nombre: nombre, monto: monto, activo: true, valido: false });
+        return;
+      }
+      var tasa = monto / normal;
+      var asignado = tasa * consumo;
+      res.innerHTML = 'Tasa: <strong>' + escaparHTML(dinero(tasa)) + ' por ' + escaparHTML(singular) + '</strong> · Asignado al lote: <strong>' + escaparHTML(dinero(asignado)) + '</strong>';
+      out.push({ nombre: nombre, monto: monto, activo: true, valido: true, normal: normal, consumo: consumo, tasa: tasa, asignado: asignado, plural: plural, singular: singular });
+    });
+    return out;
+  }
+
+  function leerFilasGasto(lista, ctx) {
+    var prefijo = lista.getAttribute('data-prefijo') || 'Costo';
+    var out = [];
+    $$('.fila', lista).forEach(function (fila, i) {
+      var nombre = $('.js-nombre', fila).value.trim() || (prefijo + ' ' + (i + 1));
+      var monto = num($('.js-monto', fila), ctx, { rotulo: prefijo.toLowerCase() === nombre.toLowerCase() ? nombre : nombre + ' (' + prefijo.toLowerCase() + ')' });
+      out.push({ nombre: nombre, monto: monto });
+    });
+    return out;
+  }
+
+  function leerFilasMP(lista, ctx) {
+    var out = [];
+    $$('.fila', lista).forEach(function (fila, i) {
+      var nombre = $('.js-nombre', fila).value.trim() || ('Insumo ' + (i + 1));
+      var elC = $('.js-cant', fila), elP = $('.js-precio', fila), elM = $('.js-merma', fila), sal = $('.js-salida', fila);
+      var vacia = !elC.value.trim() && !elP.value.trim() && !elM.value.trim();
+      if (vacia) { [elC, elP, elM].forEach(limpiarMarca); sal.textContent = '—'; return; }
+      var c = num(elC, ctx, { rotulo: 'cantidad de ' + nombre, requerido: true });
+      var p = num(elP, ctx, { rotulo: 'precio unitario de ' + nombre, requerido: true });
+      var m = num(elM, ctx, { rotulo: 'merma de ' + nombre, menorQue: 100, sufijo: '%' });
+      if (c == null || p == null || m == null) { sal.textContent = '—'; out.push({ nombre: nombre, valido: false }); return; }
+      var costo = c * p / (1 - m / 100);
+      sal.textContent = dinero(costo);
+      out.push({ nombre: nombre, cant: c, precio: p, merma: m, costo: costo, valido: true });
+    });
+    return out;
+  }
+
+  /* ============================================================
+     Valores iniciales
+     ============================================================ */
+  function resetConfig() {
+    byId('cfg-tipo').value = 'mono';
+    byId('cfg-iva').value = '21';
+    byId('cfg-iibb').value = '0';
+    desmarcar(byId('cfg'));
+  }
+  function resetT1() {
+    byId('t1-cant').value = '';
+    byId('t1-pf').value = '';
+    byId('t1-desc').value = '0';
+    byId('t1-porunidad').checked = false;
+    var l = byId('t1-gastos'); l.innerHTML = '';
+    ['Flete', 'Seguro de traslado', 'Carga y descarga', 'Empaque'].forEach(function (n) { agregarFila(l, 'gasto', { nombre: n }); });
+    desmarcar(byId('panel-1'));
+  }
+  function resetT2() {
+    byId('t2-rend').value = '';
+    var mp = byId('t2-mp'); mp.innerHTML = ''; agregarFila(mp, 'mp');
+    byId('t2-vh').value = '';
+    byId('t2-horas').value = '';
+    byId('t2-mo').innerHTML = '';
+    var cif = byId('t2-cif'); cif.innerHTML = '';
+    ['Packaging', 'Etiquetas'].forEach(function (n) { agregarFila(cif, 'cif', { nombre: n }); });
+    desmarcar(byId('panel-2'));
+  }
+  var costoEditado = false;
+  function resetT3() {
+    byId('t3-origen').value = 'comercio';
+    costoEditado = false;
+    byId('t3-costo').value = '';
+    $('input[name="t3-forma"][value="mult"]').checked = true;
+    byId('t3-mult').value = '';
+    byId('t3-precio').value = '';
+    for (var i = 1; i < 4; i++) byId('aj-' + i).value = '0';
+    desmarcar(byId('panel-3'));
+  }
+  function desmarcar(raiz) {
+    $$('input[data-tipo]', raiz).forEach(function (el) { delete el.dataset.tocado; limpiarMarca(el); });
+  }
+
+  /* ============================================================
+     Cálculos
+     ============================================================ */
+
+  function calcConfig() {
+    var ctxImp = nuevoCtx();
+    var tipo = byId('cfg-tipo').value;
+    var iva = 0, iibb = 0;
+
+    $$('[data-solo]').forEach(function (el) { el.hidden = el.getAttribute('data-solo') !== tipo; });
+
+    /* Monotributo: la cuota (que incluye Ingresos Brutos) es un costo fijo y
+       no entra en el costo unitario; tampoco se calcula IIBB aparte. */
+    if (tipo === 'ri') {
+      iva = num('cfg-iva', ctxImp, { rotulo: 'IVA (alícuota %)', requerido: true, max: 100, sufijo: '%' });
+      iibb = num('cfg-iibb', ctxImp, { rotulo: 'Ingresos Brutos (alícuota %)', requerido: true, menorQue: 100, sufijo: '%' });
+    }
+    return { tipo: tipo, iva: iva, iibb: iibb, impOk: ctxOk(ctxImp), impCtx: ctxImp };
+  }
+
+  /* ---------- Pestaña 1: comercio ---------- */
+  function calcT1(cfg) {
+    var ctx = nuevoCtx();
+    var porUnidad = byId('t1-porunidad').checked;
+    byId('t1-pf-rotulo').textContent = porUnidad ? 'Precio de factura por unidad (lista)' : 'Precio de factura del lote (lista)';
+    var cant = num('t1-cant', ctx, { rotulo: 'cantidad de unidades compradas', requerido: true, positivo: true });
+    var pf = num('t1-pf', ctx, { rotulo: porUnidad ? 'precio de factura por unidad' : 'precio de factura del lote', requerido: true });
+    var desc = num('t1-desc', ctx, { rotulo: 'descuentos', max: 100, sufijo: '%' });
+    var gastos = leerFilasGasto(byId('t1-gastos'), ctx);
+    var out = { ok: false, ctx: ctx };
+    if (!ctxOk(ctx)) return out;
+
+    var descMonto = pf * desc / 100;
+    var neto = pf - descMonto;
+    var totGastos = gastos.reduce(function (a, g) { return a + g.monto; }, 0);
+    var filas, unit, adq;
+
+    if (porUnidad) {
+      /* Precio por unidad: los gastos de compra (totales del lote) se reparten por unidad. */
+      var gastosU = totGastos / cant;
+      unit = neto + gastosU;
+      adq = unit * cant;
+      filas = [
+        ['Precio de factura por unidad', dinero(pf)],
+        ['Descuentos (' + porc(desc) + ')', dinero(-descMonto)],
+        ['Precio neto de factura por unidad', dinero(neto), 'sub']
+      ];
+      gastos.forEach(function (g) { if (g.monto > 0) filas.push([g.nombre + ' (lote)', dinero(g.monto), 'sangria']); });
+      filas.push(['Gastos de compra del lote (total)', dinero(totGastos)]);
+      filas.push(['Gastos de compra por unidad (' + dinero(totGastos) + ' ÷ ' + fmtLibre(cant) + ')', dinero(gastosU), 'sub']);
+      filas.push(['Costo unitario', dinero(unit), 'total']);
+      filas.push(['Costo de adquisición del lote (' + fmtLibre(cant) + ' unidades)', dinero(adq)]);
+    } else {
+      adq = neto + totGastos;
+      unit = adq / cant;
+      filas = [
+        ['Precio de factura del lote', dinero(pf)],
+        ['Descuentos (' + porc(desc) + ')', dinero(-descMonto)],
+        ['Precio neto de factura', dinero(neto), 'sub']
+      ];
+      gastos.forEach(function (g) { if (g.monto > 0) filas.push([g.nombre, dinero(g.monto), 'sangria']); });
+      filas.push(['Gastos de compra (total)', dinero(totGastos)]);
+      filas.push(['Costo de adquisición del lote', dinero(adq), 'sub']);
+      filas.push(['Costo unitario (' + dinero(adq) + ' ÷ ' + fmtLibre(cant) + ')', dinero(unit), 'total']);
+    }
+    return { ok: true, ctx: ctx, unit: unit, filas: filas, neto: neto, adq: adq, porUnidad: porUnidad };
+  }
+
+  /* ---------- Pestaña 2: manufactura ---------- */
+  function calcT2(cfg) {
+    var ctx = nuevoCtx();
+    var rend = num('t2-rend', ctx, { rotulo: 'rendimiento del lote', requerido: true, positivo: true });
+    var mp = leerFilasMP(byId('t2-mp'), ctx);
+
+    var vhTxt = byId('t2-vh').value.trim(), hTxt = byId('t2-horas').value.trim();
+    var algunoMO = vhTxt !== '' || hTxt !== '';
+    var vh = num('t2-vh', ctx, { rotulo: 'valor hora', requerido: algunoMO });
+    var horas = num('t2-horas', ctx, { rotulo: 'horas de transformación', requerido: algunoMO });
+    var moExtra = leerFilasGasto(byId('t2-mo'), ctx);
+
+    var cif = leerFilasCIF(byId('t2-cif'), ctx, rend, horas, hTxt !== '' && horas != null);
+
+    var out = { ok: false, ctx: ctx };
+    if (!ctxOk(ctx)) return out;
+
+    var totMP = mp.reduce(function (a, r) { return a + r.costo; }, 0);
+    var moBase = vh * horas;
+    var totMOExtra = moExtra.reduce(function (a, g) { return a + g.monto; }, 0);
+    var totMO = moBase + totMOExtra;
+    var cifLote = cif.reduce(function (a, g) { return a + (g.activo ? g.asignado : 0); }, 0);
+    var mpU = totMP / rend, moU = totMO / rend, cifU = cifLote / rend;
+    var unit = mpU + moU + cifU;
+
+    var detalle = [['Materia prima', '', 'titulo']];
+    mp.forEach(function (r) {
+      detalle.push([r.nombre + ': ' + fmtLibre(r.cant) + ' × ' + dinero(r.precio) + (r.merma ? ' ÷ (1 − ' + porc(r.merma) + ')' : ''), dinero(r.costo), 'sangria']);
+    });
+    detalle.push(['Materia prima del lote', dinero(totMP), 'sub']);
+    detalle.push(['Mano de obra directa', '', 'titulo']);
+    detalle.push(['Valor hora × horas (' + dinero(vh) + ' × ' + fmtLibre(horas) + ')', dinero(moBase), 'sangria']);
+    moExtra.forEach(function (g) { if (g.monto > 0) detalle.push([g.nombre, dinero(g.monto), 'sangria']); });
+    detalle.push(['Mano de obra del lote', dinero(totMO), 'sub']);
+    detalle.push(['Costos indirectos de fabricación', '', 'titulo']);
+    cif.forEach(function (g) {
+      if (!g.activo) return;
+      detalle.push([g.nombre + ': ' + dinero(g.monto) + ' ÷ ' + fmtLibre(g.normal) + ' ' + g.plural + ' = ' + dinero(g.tasa) + ' por ' + g.singular + ' × ' + fmtLibre(g.consumo), dinero(g.asignado), 'sangria']);
+    });
+    detalle.push(['CIF asignado al lote', dinero(cifLote), 'sub']);
+
+    var resumen = [
+      ['Costo unitario', '', 'titulo'],
+      ['Materia prima por unidad (' + dinero(totMP) + ' ÷ ' + fmtLibre(rend) + ')', dinero(mpU)],
+      ['Mano de obra por unidad (' + dinero(totMO) + ' ÷ ' + fmtLibre(rend) + ')', dinero(moU)],
+      ['CIF por unidad (' + dinero(cifLote) + ' ÷ ' + fmtLibre(rend) + ')', dinero(cifU)]
+    ];
+    resumen.push(['Costo unitario total', dinero(unit), 'total']);
+
+    return { ok: true, ctx: ctx, unit: unit, filas: detalle.concat(resumen) };
+  }
+
+  /* ---------- Pestaña 3: precios ---------- */
+  var CANALES = ['Efectivo', 'Tarjeta y Mercado Pago', 'Descuento', 'Precio mayorista'];
+
+  function sincronizarCosto(origen, t1, t2) {
+    var nota = byId('t3-costo-nota');
+    var campo = byId('t3-costo');
+    if (origen === 'manual') { nota.innerHTML = ''; return null; }
+    var fuente = origen === 'comercio' ? t1 : t2;
+    var nombre = origen === 'comercio' ? 'pestaña 1' : 'pestaña 2';
+    if (costoEditado) {
+      nota.innerHTML = '<span>Valor editado a mano.</span><button type="button" class="btn chico" id="btn-retomar">Volver a tomar el valor de la ' + nombre + '</button>';
+      return null;
+    }
+    if (fuente.ok) {
+      campo.value = aCampo(redondear2(fuente.unit), true);
+      nota.innerHTML = '<span>Tomado de la ' + nombre + '. Podés editarlo.</span>';
+      return fuente.unit; /* valor exacto, sin redondeo */
+    }
+    campo.value = '';
+    nota.innerHTML = '<span>La ' + nombre + ' todavía no tiene un costo unitario calculado.</span>';
+    return 'pendiente';
+  }
+
+  function calcT3(cfg, t1, t2) {
+    var ctx = nuevoCtx();
+    var origen = byId('t3-origen').value;
+    var sinc = sincronizarCosto(origen, t1, t2);
+    var costo;
+    if (sinc === 'pendiente') {
+      var el = byId('t3-costo'); limpiarMarca(el);
+      ctx.faltan.push('el costo unitario de la ' + (origen === 'comercio' ? 'pestaña 1' : 'pestaña 2') + ' (o elegí "Manual")');
+      costo = null;
+    } else if (typeof sinc === 'number') {
+      limpiarMarca(byId('t3-costo'));
+      costo = sinc;
+      if (!(costo > 0)) { ctx.errores.push('costo unitario (debe ser mayor que 0)'); costo = null; }
+    } else {
+      costo = num('t3-costo', ctx, { rotulo: 'costo unitario', requerido: true, positivo: true });
+    }
+
+    var forma = $('input[name="t3-forma"]:checked').value;
+    byId('t3-campo-mult').hidden = forma !== 'mult';
+    byId('t3-campo-precio').hidden = forma !== 'precio';
+
+    var mult = null, precio = null;
+    if (forma === 'mult') {
+      limpiarMarca(byId('t3-precio'));
+      mult = num('t3-mult', ctx, { rotulo: 'multiplicador', requerido: true, positivo: true });
+      if (mult != null && costo != null) precio = costo * mult;
+    } else {
+      limpiarMarca(byId('t3-mult'));
+      precio = num('t3-precio', ctx, { rotulo: 'precio de venta', requerido: true, positivo: true });
+      if (precio != null && costo != null) mult = precio / costo;
+    }
+
+    /* Efectivo = precio de venta (sin ajuste). */
+    var ajustes = [0];
+    for (var i = 1; i < 4; i++) {
+      ajustes.push(num('aj-' + i, ctx, { rotulo: 'ajuste ' + CANALES[i], requerido: true, negativos: true, mayorQue: -100, sufijo: '%' }));
+    }
+
+    var out = { ok: false, ctx: ctx, origen: origen, forma: forma, editado: costoEditado && origen !== 'manual' };
+    if (!ctxOk(ctx)) return out;
+    if (!cfg.impOk) { out.extra = 'Revisá las alícuotas en la configuración general.'; return out; }
+
+    var util = precio - costo;
+    var markup = util / costo * 100;
+    var margen = util / precio * 100;
+    var iibbU = precio * cfg.iibb / 100;
+    var margenIibb = (util - iibbU) / precio * 100;
+    var conIva = precio * (1 + cfg.iva / 100);
+
+    /* PUNTO DE EXTENSIÓN — Impuesto a las ganancias:
+       no está incluido en esta versión. Para agregarlo, calcular aquí el
+       impuesto sobre la utilidad (después de Ingresos Brutos) con la alícuota
+       o escala que corresponda, sumar un campo en la configuración general,
+       y mostrar "utilidad neta" y "margen neto" en la tabla de resultados,
+       en la estructura de precios y en el informe PDF (armarInforme). */
+
+    /* Efectivo = precio de venta; Tarjeta y MP = efectivo × (1 + ajuste);
+       Descuento y Mayorista = precio de tarjeta × (1 + ajuste). */
+    var precioTarjeta = precio * (1 + ajustes[1] / 100);
+    var BASE_CANAL = ['Precio de venta', 'Efectivo', 'Tarjeta y Mercado Pago', 'Tarjeta y Mercado Pago'];
+    var canales = ajustes.map(function (aj, i) {
+      var p = i === 0 ? precio : (i === 1 ? precioTarjeta : precioTarjeta * (1 + aj / 100));
+      var u = p - costo;
+      var ib = p * cfg.iibb / 100;
+      return {
+        nombre: CANALES[i], ajuste: aj, base: BASE_CANAL[i], precio: p, util: u,
+        margen: u / p * 100, iibb: ib, margenIibb: (u - ib) / p * 100,
+        conIva: p * (1 + cfg.iva / 100)
+      };
+    });
+
+    out.ok = true;
+    out.costo = costo; out.mult = mult; out.precio = precio; out.util = util;
+    out.markup = markup; out.margen = margen; out.iibbU = iibbU; out.margenIibb = margenIibb;
+    out.conIva = conIva; out.canales = canales;
+    return out;
+  }
+
+  /* ============================================================
+     Presentación
+     ============================================================ */
+  function indicador(et, va, negativo) {
+    return '<div class="indicador' + (negativo ? ' negativo' : '') + '"><span class="et">' + escaparHTML(et) + '</span><span class="va">' + escaparHTML(va) + '</span></div>';
+  }
+
+  function pintarT1(t1) {
+    byId('t1-res').innerHTML = t1.ok ? tablaDesglose(t1.filas, 'Desglose del costo unitario de comercio') : estadoHTML(t1.ctx, t1.extra);
+  }
+  function pintarT2(t2) {
+    var h = t2.ok ? tablaDesglose(t2.filas, 'Desglose del costo unitario de manufactura') : estadoHTML(t2.ctx, t2.extra);
+    if (t2.ok && t2.unit === 0) h += '<p class="alerta">El costo unitario es $0: cargá al menos un costo.</p>';
+    byId('t2-res').innerHTML = h;
+  }
+
+  function pintarT3(cfg, t3) {
+    var res = byId('t3-res');
+    var cuerpo = byId('t3-tabla-cuerpo');
+    var alertasTabla = byId('t3-tabla-alertas');
+    /* Elimina filas de resultados previas (la primera fila, de ajustes, se conserva). */
+    $$('tr', cuerpo).slice(1).forEach(function (tr) { tr.remove(); });
+    alertasTabla.innerHTML = '';
+
+    if (!t3.ok) { res.innerHTML = estadoHTML(t3.ctx, t3.extra); return; }
+
+    var ri = cfg.tipo === 'ri';
+    var h = '<div class="indicadores">' +
+      indicador('Costo unitario', dinero(t3.costo)) +
+      indicador(ri ? 'Precio de venta (neto de IVA)' : 'Precio de venta', dinero(t3.precio)) +
+      indicador('Multiplicador', fmtLibre(t3.mult)) +
+      indicador('Utilidad por unidad', dinero(t3.util), t3.util < 0) +
+      indicador('Markup', porc(t3.markup), t3.markup < 0) +
+      indicador(cfg.iibb > 0 ? 'Margen antes de impuestos' : 'Margen', porc(t3.margen), t3.margen < 0);
+    if (cfg.iibb > 0) {
+      h += indicador('Ingresos Brutos por unidad (' + porc(cfg.iibb) + ')', dinero(t3.iibbU)) +
+           indicador('Margen después de Ingresos Brutos', porc(t3.margenIibb), t3.margenIibb < 0);
+    }
+    if (ri) h += indicador('Precio final con IVA (' + porc(cfg.iva) + ')', dinero(t3.conIva));
+    h += '</div>';
+
+    if (t3.mult < 1) h += '<p class="alerta">El multiplicador es menor que 1: estás vendiendo por debajo del costo.</p>';
+    if (t3.markup < 0 || t3.margen < 0) h += '<p class="alerta">El markup y el margen son negativos: el precio de venta no cubre el costo unitario.</p>';
+    else if (cfg.iibb > 0 && t3.margenIibb < 0) h += '<p class="alerta">Después de Ingresos Brutos el margen es negativo.</p>';
+    res.innerHTML = h;
+
+    var filas = [
+      ['Precio final' + (ri ? ' (neto de IVA)' : ''), function (c) { return dinero(c.precio); }, 'destacada'],
+      ['Utilidad por unidad', function (c) { return dinero(c.util); }, '', function (c) { return c.util < 0; }],
+      ['Margen real', function (c) { return porc(c.margen); }, '', function (c) { return c.margen < 0; }]
+    ];
+    if (cfg.iibb > 0) {
+      filas.push(['Ingresos Brutos por unidad', function (c) { return dinero(c.iibb); }, '']);
+      filas.push(['Margen después de IIBB', function (c) { return porc(c.margenIibb); }, '', function (c) { return c.margenIibb < 0; }]);
+    }
+    if (ri) {
+      filas.push(['Precio final con IVA', function (c) { return dinero(c.conIva); }, 'destacada']);
+      if (cfg.iibb === 0) filas.push(['Ingresos Brutos por unidad', function (c) { return dinero(c.iibb); }, '']);
+    }
+    var html = '';
+    filas.forEach(function (f) {
+      html += '<tr' + (f[2] ? ' class="' + f[2] + '"' : '') + '><th scope="row">' + escaparHTML(f[0]) + '</th>';
+      t3.canales.forEach(function (c) {
+        var neg = f[3] && f[3](c);
+        html += '<td' + (neg ? ' class="neg"' : '') + '>' + escaparHTML(f[1](c)) + (neg ? ' <span class="sr-only">(negativo)</span>' : '') + '</td>';
+      });
+      html += '</tr>';
+    });
+    cuerpo.insertAdjacentHTML('beforeend', html);
+
+    var negativos = t3.canales.filter(function (c) { return c.margen < 0; }).map(function (c) { return c.nombre; });
+    if (negativos.length) {
+      alertasTabla.innerHTML = '<p class="alerta">Margen real menor que 0% en: ' + escaparHTML(negativos.join(', ')) + '. Con ese ajuste se vende por debajo del costo.</p>';
+    }
+  }
+
+  function pintarPDF(t3) {
+    var btn = byId('btn-pdf'), motivo = byId('pdf-motivo');
+    if (t3.ok) {
+      btn.disabled = false;
+      motivo.textContent = 'Se abrirá el diálogo de impresión: elegí "Guardar como PDF" como destino.';
+    } else {
+      btn.disabled = true;
+      var partes = [];
+      if (t3.extra) partes.push(t3.extra);
+      if (t3.ctx.errores.length) partes.push('hay campos con errores (' + unicos(t3.ctx.errores).join(', ') + ')');
+      if (t3.ctx.faltan.length) partes.push('falta completar: ' + unicos(t3.ctx.faltan).join(', '));
+      motivo.textContent = 'No disponible todavía: ' + partes.join('; ') + '.';
+    }
+  }
+
+  /* ============================================================
+     Informe para PDF
+     ============================================================ */
+  var ultimo = null;
+
+  function fechaHoy(sep) {
+    var d = new Date();
+    var dd = String(d.getDate()).padStart(2, '0'), mm = String(d.getMonth() + 1).padStart(2, '0');
+    return dd + sep + mm + sep + d.getFullYear();
+  }
+
+  function tablaInforme(filas) {
+    var h = '<table><tbody>';
+    filas.forEach(function (f) {
+      h += '<tr' + (f[2] ? ' class="' + f[2] + '"' : '') + '><td>' + escaparHTML(f[0]) + '</td><td>' + escaparHTML(f[1] == null ? '' : f[1]) + '</td></tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  function armarInforme() {
+    var inf = byId('informe');
+    var s = ultimo;
+    var enc = '<div class="inf-enc">' +
+      '<div><h1>Calculadora para negocios</h1><p>' + escaparHTML(ESTUDIO) + ' · Informe de precios · ' + fechaHoy('/') + '</p></div></div>';
+    var pie = '<div class="inf-pie">Estimación orientativa. No reemplaza el asesoramiento profesional.<br><strong>' + escaparHTML(ESTUDIO) + '</strong></div>';
+
+    if (!s || !s.t3.ok) {
+      inf.innerHTML = enc + '<p>El cálculo de precios no está completo. Completá la pestaña 3 y volvé a intentar.</p>' + pie;
+      return;
+    }
+    var cfg = s.cfg, t3 = s.t3, ri = cfg.tipo === 'ri';
+
+    var h = enc;
+    h += '<h2>Tipo de contribuyente y alícuotas</h2>';
+    var filasCfg = [['Tipo de contribuyente', ri ? 'Responsable inscripto' : 'Monotributista']];
+    if (ri) {
+      filasCfg.push(['IVA (alícuota)', porc(cfg.iva)]);
+      filasCfg.push(['Ingresos Brutos (alícuota)', porc(cfg.iibb)]);
+    }
+    h += tablaInforme(filasCfg);
+    h += '<p class="inf-nota">' + (ri
+      ? 'Alícuotas cargadas por el usuario; verificarlas con la normativa vigente de su jurisdicción. Precios expresados netos de IVA; costos cargados sin IVA.'
+      : 'Monotributo: los precios son precios finales (no se discrimina IVA). La cuota mensual, que incluye Ingresos Brutos, es un costo fijo y no está incluida en el costo unitario.') + '</p>';
+
+    h += '<h2>Origen y desglose del costo unitario</h2>';
+    var nombreOrigen = { comercio: 'Sector Reventa - Comercio (pestaña 1)', manufactura: 'Sector Manufactura - Producción (pestaña 2)', manual: 'Manual' }[t3.origen];
+    h += '<p class="inf-nota">Costo unitario tomado de: <strong>' + nombreOrigen + '</strong>' + (t3.editado ? ' — valor editado a mano.' : '') + '</p>';
+    var fuente = t3.origen === 'comercio' ? s.t1 : (t3.origen === 'manufactura' ? s.t2 : null);
+    if (fuente && fuente.ok && !t3.editado) h += tablaInforme(fuente.filas);
+    else h += tablaInforme([['Costo unitario', dinero(t3.costo), 'total']]);
+
+    h += '<h2>Precio de venta, markup y margen</h2>';
+    var filasP = [
+      ['Forma de cálculo', t3.forma === 'mult' ? 'Por multiplicador sobre el costo' : 'Por precio de venta'],
+      ['Costo unitario', dinero(t3.costo)],
+      ['Multiplicador', fmtLibre(t3.mult)],
+      [ri ? 'Precio de venta (neto de IVA)' : 'Precio de venta', dinero(t3.precio), 'total'],
+      ['Utilidad por unidad', dinero(t3.util)],
+      ['Markup (sobre el costo)', porc(t3.markup)],
+      ['Margen antes de impuestos (sobre el precio)', porc(t3.margen)]
+    ];
+    if (cfg.iibb > 0) {
+      filasP.push(['Ingresos Brutos por unidad', dinero(t3.iibbU)]);
+      filasP.push(['Margen después de Ingresos Brutos', porc(t3.margenIibb)]);
+    }
+    if (ri) filasP.push(['Precio final con IVA', dinero(t3.conIva)]);
+    h += tablaInforme(filasP);
+    if (t3.mult < 1) h += '<p class="inf-nota">Atención: el multiplicador es menor que 1 (venta por debajo del costo).</p>';
+
+    h += '<h2>Estructura de precios</h2>';
+    h += '<table class="inf-precios"><thead><tr><th>Concepto</th>' + t3.canales.map(function (c) { return '<th>' + escaparHTML(c.nombre) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    var filasT = [
+      ['Ajuste', function (c, i) { return i === 0 ? '= Precio de venta' : (c.ajuste > 0 ? '+' : '') + porc(c.ajuste) + ' sobre ' + c.base; }],
+      ['Precio final' + (ri ? ' (neto de IVA)' : ''), function (c) { return dinero(c.precio); }],
+      ['Utilidad por unidad', function (c) { return dinero(c.util); }],
+      ['Margen real', function (c) { return porc(c.margen); }]
+    ];
+    if (cfg.iibb > 0 || ri) filasT.push(['Ingresos Brutos por unidad', function (c) { return dinero(c.iibb); }]);
+    if (cfg.iibb > 0) filasT.push(['Margen después de IIBB', function (c) { return porc(c.margenIibb); }]);
+    if (ri) filasT.push(['Precio final con IVA', function (c) { return dinero(c.conIva); }]);
+    filasT.forEach(function (f) {
+      h += '<tr><td>' + escaparHTML(f[0]) + '</td>' + t3.canales.map(function (c, i) { return '<td>' + escaparHTML(f[1](c, i)) + '</td>'; }).join('') + '</tr>';
+    });
+    h += '</tbody></table>';
+    var neg = t3.canales.filter(function (c) { return c.margen < 0; }).map(function (c) { return c.nombre; });
+    if (neg.length) h += '<p class="inf-nota">Atención: margen real negativo en ' + escaparHTML(neg.join(', ')) + '.</p>';
+
+    h += '<h2>Fórmulas usadas</h2><ul>';
+    if (t3.origen === 'comercio' && !t3.editado) {
+      h += '<li>Precio neto de factura = precio de factura − descuentos.</li>' + (s.t1.porUnidad
+        ? '<li>Costo unitario = precio neto de factura por unidad + gastos de compra del lote ÷ cantidad.</li>'
+        : '<li>Costo de adquisición del lote = precio neto de factura + gastos de compra.</li><li>Costo unitario = costo de adquisición del lote ÷ cantidad.</li>');
+    } else if (t3.origen === 'manufactura' && !t3.editado) {
+      h += '<li>Materia prima = cantidad × precio unitario ÷ (1 − merma %).</li>' +
+           '<li>Mano de obra del lote = valor hora × horas (+ otros costos de mano de obra).</li>' +
+           '<li>Tasa de cada rubro CIF = monto mensual ÷ base normal del mes; CIF del lote = tasa × base que consume el lote.</li>' +
+           '<li>Costo unitario = (materia prima + mano de obra + CIF del lote) ÷ rendimiento.</li>';
+    }
+    h += '<li>Precio de venta = costo unitario × multiplicador (multiplicador = precio ÷ costo).</li>' +
+         '<li>Markup = (precio − costo) ÷ costo × 100.</li>' +
+         '<li>Margen = (precio − costo) ÷ precio × 100.</li>' +
+         '<li>Efectivo = precio de venta. Tarjeta y Mercado Pago = efectivo × (1 + ajuste %).</li>' +
+         '<li>Descuento y Precio mayorista = precio de Tarjeta y Mercado Pago × (1 + ajuste %).</li>';
+    if (ri) h += '<li>Ingresos Brutos por unidad = precio neto × alícuota %.</li><li>Precio final con IVA = precio neto × (1 + IVA %).</li>';
+    h += '</ul><p class="inf-nota">El markup se calcula sobre el costo y el margen sobre el precio de venta. No incluye impuesto a las ganancias.</p>';
+    h += pie;
+    inf.innerHTML = h;
+  }
+
+  var tituloOriginal = document.title;
+  function imprimir() {
+    if (!ultimo || !ultimo.t3.ok) return;
+    armarInforme();
+    document.title = 'Calculadora - Precios - ' + fechaHoy('-');
+    window.print();
+  }
+  window.addEventListener('beforeprint', armarInforme);
+  window.addEventListener('afterprint', function () { document.title = tituloOriginal; });
+
+  /* ============================================================
+     Orquestación
+     ============================================================ */
+  function recalcular() {
+    var cfg = calcConfig();
+    var t1 = calcT1(cfg);
+    var t2 = calcT2(cfg);
+    var t3 = calcT3(cfg, t1, t2);
+    pintarT1(t1); pintarT2(t2); pintarT3(cfg, t3); pintarPDF(t3);
+    ultimo = { cfg: cfg, t1: t1, t2: t2, t3: t3 };
+  }
+
+  /* Exposición mínima para pruebas automatizadas (solo lectura). */
+  window.__calculadora = { estado: function () { return ultimo; }, leerNumero: leerNumero };
+
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.id === 't3-costo' && byId('t3-origen').value !== 'manual') costoEditado = true;
+    if (t.classList && t.classList.contains('js-nombre')) actualizarRotuloEliminar(t.closest('.fila'));
+    recalcular();
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.id === 't3-origen') costoEditado = false;
+    if (t.name === 't3-forma') {
+      /* Al cambiar de forma, se trae el valor equivalente si el otro campo está vacío. */
+      var s = ultimo && ultimo.t3;
+      if (s && s.ok) {
+        if (t.value === 'precio' && !byId('t3-precio').value.trim()) byId('t3-precio').value = aCampo(redondear2(s.precio), true);
+        if (t.value === 'mult' && !byId('t3-mult').value.trim()) byId('t3-mult').value = aCampo(Math.round(s.mult * 10000) / 10000, false);
+      }
+    }
+    recalcular();
+  });
+  /* Al salir de un campo numérico: se marca como visitado y se normaliza el formato. */
+  document.addEventListener('focusout', function (e) {
+    var t = e.target;
+    if (!t.matches || !t.matches('input[data-tipo]')) return;
+    t.dataset.tocado = '1';
+    var tipo = t.getAttribute('data-tipo');
+    var r = leerNumero(t.value, tipo);
+    if (r.valor != null && !(t.id === 't3-costo' && !costoEditado && byId('t3-origen').value !== 'manual')) {
+      t.value = aCampo(r.valor, tipo === 'monto' || tipo === 'cantidad');
+    }
+    recalcular();
+  });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('button') : null;
+    if (!t) return;
+    if (t.hasAttribute('data-agregar')) {
+      var lista = byId(t.getAttribute('data-agregar'));
+      var fila = agregarFila(lista, t.getAttribute('data-clase'));
+      $('.js-nombre', fila).focus();
+      recalcular();
+    } else if (t.hasAttribute('data-eliminar')) {
+      var f = t.closest('.fila'), l = f.parentNode;
+      var foco = f.previousElementSibling || f.nextElementSibling;
+      f.remove();
+      if (foco) $('[data-eliminar]', foco).focus();
+      else l.parentNode.querySelector('[data-agregar="' + l.id + '"]').focus();
+      recalcular();
+    } else if (t.hasAttribute('data-limpiar')) {
+      var n = t.getAttribute('data-limpiar');
+      if (n === '1') resetT1(); else if (n === '2') resetT2(); else resetT3();
+      recalcular();
+    } else if (t.id === 'btn-reset-todo') {
+      resetConfig(); resetT1(); resetT2(); resetT3();
+      recalcular();
+    } else if (t.id === 'btn-retomar') {
+      costoEditado = false;
+      recalcular();
+      byId('t3-costo').focus();
+    } else if (t.id === 'btn-empezar') {
+      activar(byId('tab-1'), true);
+      window.scrollTo(0, 0);
+    } else if (t.id === 'btn-pdf') {
+      imprimir();
+    }
+  });
+
+  /* ---------- Pestañas accesibles ---------- */
+  var tabs = $$('[role="tab"]');
+  function activar(tab, enfocar) {
+    tabs.forEach(function (t) {
+      var sel = t === tab;
+      t.setAttribute('aria-selected', sel ? 'true' : 'false');
+      t.tabIndex = sel ? 0 : -1;
+      byId(t.getAttribute('aria-controls')).hidden = !sel;
+    });
+    /* La configuración general se muestra en las pestañas de cálculo, no en Inicio. */
+    byId('cfg').hidden = tab.id === 'tab-0';
+    if (enfocar) tab.focus();
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { activar(tab, false); });
+    tab.addEventListener('keydown', function (e) {
+      var j = null;
+      if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = tabs.length - 1;
+      if (j !== null) { e.preventDefault(); activar(tabs[j], true); }
+    });
+  });
+
+  /* ---------- Inicio ---------- */
+  resetConfig(); resetT1(); resetT2(); resetT3();
+  recalcular();
+})();
+</script>
+</body>
+</html>
