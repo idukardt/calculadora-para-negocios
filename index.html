@@ -37,12 +37,12 @@
 
   *, *::before, *::after { box-sizing: border-box; }
 
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; font-size: 15px; }
 
   body {
     margin: 0;
     font-family: Helvetica, Arial, sans-serif;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.45;
     color: var(--texto);
     background: var(--fondo);
@@ -75,8 +75,8 @@
     padding: 22px 24px;
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
   }
-  .encabezado h1 { margin: 0; font-size: 1.55rem; line-height: 1.2; letter-spacing: -0.01em; }
-  .encabezado .bajada { margin: 4px 0 0; font-size: 1.05rem; color: #dbe7ff; }
+  .encabezado h1 { margin: 0; font-size: 1.4rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .encabezado .bajada { margin: 4px 0 0; font-size: 0.95rem; color: #dbe7ff; }
   .encabezado .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
   .encabezado .estudio { display: block; margin-top: 12px; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--acento); }
   .btn-pildora {
@@ -98,7 +98,7 @@
     padding: 16px;
     margin-bottom: 16px;
   }
-  .tarjeta > h2, .tarjeta > .cabecera h2 { margin: 0; font-size: 1.15rem; color: var(--primario); }
+  .tarjeta > h2, .tarjeta > .cabecera h2 { margin: 0; font-size: 1.1rem; color: var(--primario); }
   .cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
   h3 { color: var(--primario); font-size: 1.02rem; margin: 18px 0 8px; }
   h3:first-child { margin-top: 0; }
@@ -188,7 +188,7 @@
     padding: 6px; margin: 0 0 16px;
   }
   .pestanas [role="tab"] {
-    font: inherit; font-size: 0.95rem; font-weight: bold;
+    font: inherit; font-size: 0.9rem; font-weight: bold;
     flex: 0 1 auto;
     padding: 9px 16px; min-height: 42px; line-height: 1.2;
     border: 0; border-radius: var(--radio);
@@ -201,19 +201,19 @@
 
   /* ---------- Inicio ---------- */
   .inicio { text-align: center; padding: 28px 0 12px; }
-  .inicio h2 { margin: 0; font-size: 2rem; line-height: 1.15; color: var(--primario); letter-spacing: -0.01em; }
-  .inicio .bajada { margin: 8px 0 0; font-size: 1.15rem; color: var(--primario); }
-  .inicio .intro { max-width: 60ch; margin: 16px auto 0; color: var(--texto-sec); font-size: 1rem; }
+  .inicio h2 { margin: 0; font-size: 1.75rem; line-height: 1.15; color: var(--primario); letter-spacing: -0.01em; }
+  .inicio .bajada { margin: 8px 0 0; font-size: 1rem; color: var(--primario); }
+  .inicio .intro { max-width: 60ch; margin: 14px auto 0; color: var(--texto-sec); font-size: 0.95rem; }
   .pasos { list-style: none; max-width: 640px; margin: 26px auto 0; padding: 6px 22px; text-align: left;
     background: #fff; border: 1px solid var(--borde); border-radius: var(--radio-g); }
-  .pasos li { display: flex; gap: 14px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid #e3e3e3; }
+  .pasos li { display: flex; gap: 14px; align-items: flex-start; padding: 13px 0; font-size: 0.95rem; border-bottom: 1px solid #e3e3e3; }
   .pasos li:last-child { border-bottom: 0; }
   .pasos .n { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--primario); color: #fff;
     display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; }
   .pasos strong { display: block; color: var(--primario); }
   .pasos span.d { color: var(--texto-sec); font-size: 0.93rem; }
   .inicio .aviso { max-width: 640px; margin: 18px auto 0; text-align: left; }
-  .btn.grande { font-size: 1.05rem; min-height: 50px; padding: 10px 34px; margin-top: 22px; border-radius: 10px; }
+  .btn.grande { font-size: 1rem; min-height: 46px; padding: 10px 34px; margin-top: 22px; border-radius: 10px; }
 
   [role="tabpanel"] { padding-top: 0; }
   [role="tabpanel"]:focus-visible { box-shadow: none; outline-offset: 4px; }
@@ -318,6 +318,8 @@
   .pie strong { color: var(--primario); }
 
   [hidden] { display: none !important; }
+  /* En celulares, los campos se mantienen en 16 px para que el navegador no haga zoom al tocarlos. */
+  @media (max-width: 559px) { input[type="text"], select { font-size: 16px; } }
 
   /* ---------- Informe para imprimir / PDF ---------- */
   #informe { display: none; }
